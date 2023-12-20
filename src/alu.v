@@ -2,7 +2,7 @@
 ALU MODULE for calculations
 */
 /* verilator lint_off MODDUP */
-module alu (
+module alu_module (
 	input wire [3:0] sel,
 	input wire [7:0] a,
 	input wire [7:0] b,

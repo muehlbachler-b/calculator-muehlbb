@@ -46,7 +46,7 @@ module tt_um_calculator_muehlbb (
 	reg [7:0] data_b;
 
 	// Create Alu-Model
-	alu alu_1(alu_sel, data_a, data_b, y_out);
+	alu_module alu_1(alu_sel, data_a, data_b, y_out);
 
     always @(posedge clk) begin
         // if reset, set counter to 0
