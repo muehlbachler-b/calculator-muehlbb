@@ -5,6 +5,7 @@
 `default_nettype none
 `ifndef __CALCULATOR__
 `define __CALCULATOR__
+
 `include "alu.v"
 
 module tt_um_calculator_muehlbb (
@@ -46,7 +47,7 @@ module tt_um_calculator_muehlbb (
 	reg [7:0] data_b;
 
 	// Create Alu-Model
-	alu_module alu_1(alu_sel, data_a, data_b, y_out);
+	alu alu_1(alu_sel, data_a, data_b, y_out);
 
     always @(posedge clk) begin
         // if reset, set counter to 0

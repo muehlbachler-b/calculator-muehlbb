@@ -9,7 +9,7 @@ that can be driven / tested by the cocotb test.py
 `include "tt_um_calculator_muehlbb.v"
 
 // testbench is controlled by test.py
-module tb ();
+module tb;
 
     // this part dumps the trace to a vcd file that can be viewed with GTKWave
     initial begin
