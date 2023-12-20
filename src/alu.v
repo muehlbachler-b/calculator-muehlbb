@@ -1,7 +1,7 @@
 /*
 ALU MODULE for calculations
 */
-
+/* verilator lint_off MODDUP */
 module alu (
 	input wire [3:0] sel,
 	input wire [7:0] a,
@@ -29,3 +29,4 @@ module alu (
 		endcase
 	end
 endmodule
+/* verilator lint_on MODDUP */
