@@ -9,7 +9,7 @@ TOPLEVEL_LANG ?= verilog
 ifneq ($(GATES),yes)
 
 # this is the only part you should need to modify:
-VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_um_seven_segment_seconds.v $(PWD)/decoder.v
+VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_um_calculator_muehlbb.v
 
 else
 
@@ -27,7 +27,7 @@ VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/gate_level_netlist.v
 endif
 
 # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-TOPLEVEL = tb
+TOPLEVEL = tt_um_calculator_muehlbb
 
 # MODULE is the basename of the Python test file
 MODULE = test
