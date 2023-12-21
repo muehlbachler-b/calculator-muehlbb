@@ -37,17 +37,18 @@ module tt_um_calculator_muehlbb (
 	/* verilator lint_off UNUSEDSIGNAL */
 	wire [7:0] data_in = uio_in;
 	/* verilator lint_on UNUSEDSIGNAL */
-	wire [7:0] y_out;
-	assign uio_out = y_out;
+	reg [7:0] data_out;
+	assign uio_out = data_out;
 	reg [7:0] inout_en; //enables IO-Port for input or output
 	assign uio_oe = inout_en;
 
 	// create registers for data
-	reg [7:0] data_a;
-	reg [7:0] data_b;
+	reg [15:0] data_a;
+	reg [15:0] data_b;
+	wire [15:0] y;
 
 	// Create Alu-Model
-	alu alu_1(alu_sel, data_a, data_b, y_out);
+	alu alu_1(alu_sel, data_a, data_b, y);
 
     always @(posedge clk) begin
         // if reset, set counter to 0
@@ -55,10 +56,24 @@ module tt_um_calculator_muehlbb (
             status <= 4'h0;
             counter <= 3'b000;
             inout_en <= 8'h00;
-            data_a <= 8'h11;
-            data_b <= 8'h11;
-        end else
+            data_a <= 16'h0011;
+            data_b <= 16'h0011;
+        end else begin
             counter <= counter + 1;
+        end
+        
+        /* verilator lint_off CASEINCOMPLETE */  
+       	case(counter)
+       		3'b000 : data_a[7:0] <= uio_in;
+    		3'b001 : data_a[15:8] <= uio_in;
+    		3'b010 : data_b[7:0] <= uio_in;
+    		3'b011 : data_b[15:8] <= uio_in;
+    		3'b100 : data_out <= y[7:0];
+    		3'b101 : data_out <= y[15:8];
+    		//default: uo_out[7] <= 1'b1;
+    			
+    	endcase
+    	/* verilator lint_on CASEINCOMPLETE */
     end
 
 endmodule
