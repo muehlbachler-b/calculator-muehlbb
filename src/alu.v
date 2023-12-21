@@ -24,7 +24,6 @@ module alu (
 			8 : 		y = a + b;		// add the two operands
 			9 :			y = a - b;		// subtract the two operands
 			10 :		y = a * b;		// multiply the two operands
-			11 :		y = a / b;		// divide the two operands
 			default :	y = 16'h0000;
 		endcase
 	end
