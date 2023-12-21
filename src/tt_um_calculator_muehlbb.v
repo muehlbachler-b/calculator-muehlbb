@@ -1,6 +1,22 @@
-/*
-	Calculator that performs 16-bit arithmetic and logic operations on data.
-*/
+// Copyright 2023 Benedikt Muehlbachler JKU
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 		http://www.apache.org/licenses/LICENSE−2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License
+// 
+// ################################################################
+// Module tt_um_calculator_muehlbb.v
+// - Performs 16-bit arithmetic and logic operations on data
+// - Uses module alu.v
+// ################################################################
 
 `default_nettype none
 `ifndef __CALCULATOR__
@@ -27,11 +43,10 @@ module tt_um_calculator_muehlbb (
 	/* verilator lint_on UNUSEDSIGNAL */
 
 	// Outputs sdfds
-	reg [3:0] status;
-	assign uo_out[3:0] = status;
+	//sta
 	reg [2:0] counter;
-	assign uo_out[6:4] = counter;
-	assign uo_out[7] = 1'b0;
+	assign uo_out[5:3] = counter;
+	assign uo_out[7:6] = 2'b00;
 	
 	// IOs
 	/* verilator lint_off UNUSEDSIGNAL */
@@ -48,12 +63,11 @@ module tt_um_calculator_muehlbb (
 	wire [15:0] y;
 
 	// Create Alu-Model
-	alu alu_1(alu_sel, data_a, data_b, y);
+	alu alu_1(alu_sel, data_a, data_b, y, uo_out[2:0]);
 
     always @(posedge clk) begin
         // if reset, set counter to 0
         if (rst) begin
-            status <= 4'h0;
             counter <= 3'b000;
             inout_en <= 8'h00;
             data_a <= 16'h0011;
@@ -70,8 +84,6 @@ module tt_um_calculator_muehlbb (
     		3'b011 : data_b[15:8] <= uio_in;
     		3'b100 : data_out <= y[7:0];
     		3'b101 : data_out <= y[15:8];
-    		//default: uo_out[7] <= 1'b1;
-    			
     	endcase
     	/* verilator lint_on CASEINCOMPLETE */
     end
