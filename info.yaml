@@ -21,13 +21,23 @@ yaml_version: 4
 # Here is a great example: https://github.com/davidsiaw/tt02-davidsiaw-stackcalc/blob/38c5647f83aad2aec675d566aa3d67b98f0aac81/info.yaml
 documentation: 
   author:       "Benedikt Muehlbachler"      # Your name
-  title:        "Calculator"      # Project title
+  title:        "16-bit Calculator"      # Project title
   language:     "Verilog" # other examples include Verilog, Amaranth, VHDL, etc
   description:  "Simple Calculator using 16bit data (add, subtract, complement, etc.)"      # Short description of what your project does
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
-      It works like a xx
+      
+      
+      Sequence as follows (if reset occures, the sequence starts from the beginning):
+      	1. Reset to reset the registers and counter.
+      	2. Loads Low-Byte of Operand A (via IO-Port)
+      	3. Loads High-Byte of Operand A (via IO-Port)
+      	4. Loads Low-Byte of Operand B (via IO-Port)
+      	5. Loads High-Byte of Operand B (via IO-Port)
+      	6. Writes Low-Byte of Result (via IO-Port)
+      	7. Writes Low-Byte of Result (via IO-Port)
+      	8. Go to (1.)
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
@@ -35,34 +45,18 @@ documentation:
 
 # A description of what the inputs do (e.g. red button, SPI CLK, SPI MOSI, etc).
   inputs:               
-    - compare bit 11
-    - compare bit 12
-    - compare bit 13
-    - compare bit 14
-    - compare bit 15
-    - compare bit 16
-    - compare bit 17
-    - compare bit 18
+    - clk - clock
+    - rst_n - reset (low to reset)
+    - uin[3:0] - alu_sel (alu operation selection - one of 12 different operation modes
+    - uin[7:4] - NOT USED
 # A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
-    - segment a
-    - segment b
-    - segment c
-    - segment d
-    - segment e
-    - segment f
-    - segment g
-    - dot
+    - uout[2:0] - status (alu status flags 0:false alu operation selected, 1:zero-flag, 2:sign-flag)
+    - uout[5:3] - counter (counter status of the operation sequence)
+    - uout[7:6] - VSS
 # A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
-    - second counter bit 0
-    - second counter bit 1
-    - second counter bit 2
-    - second counter bit 3
-    - second counter bit 4
-    - second counter bit 5
-    - second counter bit 6
-    - second counter bit 7
+    - uio[7:0] - data-port (for input data (operand a and b) and output data (result of operation))
 
 # The following fields are optional
   tag:          "calculator, alu, test"      # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
