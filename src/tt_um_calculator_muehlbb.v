@@ -15,7 +15,7 @@
 // ################################################################
 // Module tt_um_calculator_muehlbb.v
 // - Performs 16-bit arithmetic and logic operations on data
-// - Uses module alu.v
+// - Use module alu.v (16-bit arithmetic logic unit)
 // ################################################################
 
 `default_nettype none
@@ -35,58 +35,64 @@ module tt_um_calculator_muehlbb (
     input  wire       rst_n     // reset_n - low to reset
 );
 	// Inputs
-	wire rst = ~rst_n;				 // reset
-	wire [3:0] alu_sel = ui_in[3:0]; // alu operation selection
+	wire rst = ~rst_n;				 	// reset
+	wire [3:0] alu_sel = ui_in[3:0]; 	// alu operation selection
 	/* verilator lint_off UNUSEDSIGNAL */
 	wire [3:0] dummy1 = ui_in[7:4];
 	wire dummy2 = ena;
 	/* verilator lint_on UNUSEDSIGNAL */
 
-	// Outputs sdfds
-	//sta
-	reg [2:0] counter;
+	// Outputs
+	//uo_out[2:0] - already written in alu-model; status bits of operation (bit0:false-alu_sel-flag, bit1:zero-flag, bit2:sign-flag)
+	reg [2:0] counter;					// counter register - (to synchronize read input data and write output data)
 	assign uo_out[5:3] = counter;
-	assign uo_out[7:6] = 2'b00;
+	assign uo_out[7:6] = 2'b00;			// unused outputs - connected to VSS
 	
 	// IOs
-	/* verilator lint_off UNUSEDSIGNAL */
-	wire [7:0] data_in = uio_in;
-	/* verilator lint_on UNUSEDSIGNAL */
-	reg [7:0] data_out;
+	wire [7:0] data_in = uio_in;		// input-port for operand a and b of calculation
+	reg [7:0] data_out;					// data-output-register (for the result of operation)
 	assign uio_out = data_out;
-	reg [7:0] inout_en; //enables IO-Port for input or output
+	reg [7:0] inout_en; 				//IO-Port Enable Register (0x00 for input, 0xff for output)
 	assign uio_oe = inout_en;
 
-	// create registers for data
-	reg [15:0] data_a;
-	reg [15:0] data_b;
-	wire [15:0] y;
+	// Create registers for data
+	reg [15:0] data_a;					// operand a register for calculation
+	reg [15:0] data_b;					// operand b register for calculation
+	wire [15:0] y;						// y output result of operation
 
 	// Create Alu-Model
-	alu alu_1(alu_sel, data_a, data_b, y, uo_out[2:0]);
+	alu alu_1(alu_sel, data_a, data_b, y, uo_out[2:0]); //16-bit alu for operations
 
+	
     always @(posedge clk) begin
         // if reset, set counter to 0
         if (rst) begin
-            counter <= 3'b000;
-            inout_en <= 8'h00;
-            data_a <= 16'h0011;
-            data_b <= 16'h0011;
-        end else begin
-            counter <= counter + 1;
+            data_a <= 16'h0000;
+            data_b <= 16'h0000;
         end
         
         /* verilator lint_off CASEINCOMPLETE */  
        	case(counter)
-       		3'b000 : data_a[7:0] <= uio_in;
-    		3'b001 : data_a[15:8] <= uio_in;
-    		3'b010 : data_b[7:0] <= uio_in;
-    		3'b011 : data_b[15:8] <= uio_in;
-    		3'b100 : data_out <= y[7:0];
-    		3'b101 : data_out <= y[15:8];
+       		3'b001 : data_a[7:0] <= data_in;
+    		3'b010 : data_a[15:8] <= data_in;
+    		3'b011 : data_b[7:0] <= data_in;
+    		3'b100 : data_b[15:8] <= data_in;
+    		3'b101 : data_out <= y[7:0];
+    		3'b110 : data_out <= y[15:8];
     	endcase
     	/* verilator lint_on CASEINCOMPLETE */
     end
+    
+    always @(negedge clk) begin
+    	if (rst || counter == 3'b110) begin
+    		counter <= 3'b000;
+    		inout_en <= 8'h00;
+    	end	else
+    		counter <= counter + 1;
+
+    	if (counter == 3'b100)
+    		inout_en <= 8'hff;
+   	end
 
 endmodule
 
