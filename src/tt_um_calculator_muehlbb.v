@@ -35,65 +35,66 @@ module tt_um_calculator_muehlbb (
     input  wire       rst_n     // reset_n - low to reset
 );
 	// Inputs
-	wire rst = ~rst_n;				 	// reset
-	wire [3:0] alu_sel = ui_in[3:0]; 	// alu operation selection
+	wire rst = ~rst_n; // reset
+	wire [3:0] alu_sel = ui_in[3:0]; // alu operation selection
 	/* verilator lint_off UNUSEDSIGNAL */
 	wire [3:0] dummy1 = ui_in[7:4];
 	wire dummy2 = ena;
 	/* verilator lint_on UNUSEDSIGNAL */
 
 	// Outputs
-	//uo_out[2:0] - already written in alu-model; status bits of operation (bit0:false-alu_sel-flag, bit1:zero-flag, bit2:sign-flag)
-	reg [2:0] counter;					// counter register - (to synchronize read input data and write output data)
-	assign uo_out[5:3] = counter;
-	assign uo_out[7:6] = 2'b00;			// unused outputs - connected to VSS
+	reg [4:0] status_out; // status register for output
+	assign uo_out[4:0] = status_out;
+	
+	reg [2:0] counter; // counter register
+	assign uo_out[7:5] = counter;
 	
 	// IOs
-	wire [7:0] data_in = uio_in;		// input-port for operand a and b of calculation
-	reg [7:0] data_out;					// data-output-register (for the result of operation)
+	wire [7:0] data_in = uio_in; // input-port for operand a and b of calculation
+	reg [7:0] data_out; // data-output-register (for the result of operation)
 	assign uio_out = data_out;
-	reg [7:0] inout_en; 				//IO-Port Enable Register (0x00 for input, 0xff for output)
+	reg [7:0] inout_en; //IO-Port Enable Register (0x00 for input, 0xff for output)
 	assign uio_oe = inout_en;
 
 	// Create registers for data
-	reg [15:0] data_a;					// operand a register for calculation
-	reg [15:0] data_b;					// operand b register for calculation
-	wire [15:0] y;						// y output result of operation
-
-	// Create Alu-Model
-	alu alu_1(alu_sel, data_a, data_b, y, uo_out[2:0]); //16-bit alu for operations
-
+	reg [3:0] sel_reg; // alu sel register for ALU
+	reg [15:0] data_a; // operand a register for calculation
+	reg [15:0] data_b; // operand b register for calculation
+	wire [15:0] y; // y output result of operation
+	wire [4:0] status_wire; // status output of ALU
 	
+	alu alu_1(sel_reg, data_a, data_b, y, status_wire); //16-bit alu for operations
+
     always @(posedge clk) begin
-        // if reset, set counter to 0
-        if (rst) begin
-            data_a <= 16'h0000;
-            data_b <= 16'h0000;
-        end
-        
         /* verilator lint_off CASEINCOMPLETE */  
        	case(counter)
-       		3'b001 : data_a[7:0] <= data_in;
-    		3'b010 : data_a[15:8] <= data_in;
-    		3'b011 : data_b[7:0] <= data_in;
-    		3'b100 : data_b[15:8] <= data_in;
-    		3'b101 : data_out <= y[7:0];
-    		3'b110 : data_out <= y[15:8];
+       		3'b001 : data_a[7:0] <= data_in; //save in low-byte of A
+    		3'b010 : data_a[15:8] <= data_in; //save in high-byte of A
+    		3'b011 : data_b[7:0] <= data_in; //save in low-byte of B
+    		3'b100 : begin
+    					data_b[15:8] <= data_in; //save in high-byte of B
+    					sel_reg <= alu_sel; // select ALU operation
+    					end
+    		3'b101 : begin
+    					data_out <= y[7:0]; //write low-byte of result on IO-Port
+    					status_out <= status_wire; //write status-reg on output
+    					end
+    		3'b110 : data_out <= y[15:8]; //write high-byte of result on IO-Port
     	endcase
     	/* verilator lint_on CASEINCOMPLETE */
     end
     
     always @(negedge clk) begin
     	if (rst || counter == 3'b110) begin
-    		counter <= 3'b000;
-    		inout_en <= 8'h00;
+    		// if reset or counter finished --> start from new
+    		counter <= 3'b000; // counter=0
+    		inout_en <= 8'h00; // set IO-Port as IN (to save a nd b in registers)
     	end	else
     		counter <= counter + 1;
-
+    		
     	if (counter == 3'b100)
-    		inout_en <= 8'hff;
+    		inout_en <= 8'hff; // set IO-Port as OUT (for result output)
    	end
-
 endmodule
 
 `endif
